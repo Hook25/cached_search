@@ -19,7 +19,7 @@ To avoid the interaction use the `yes` utility, or its windows alternative
 
 Find all files in `C:\\` that have a `.py` extension
 
-> python main.py 'C:\\' '\*.py'
+> python main.py 'C:\\\\' '\*.py'
 
 Find all files in `/home` that contain `cache`
 
