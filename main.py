@@ -3,6 +3,7 @@ import sys
 import fnmatch
 import hashlib
 import pickle
+import zlib
 
 def get_all_leafs(root):
   res = []
@@ -27,11 +28,13 @@ def has_save(root):
   
 def load(root):
   with open(r_hash(root), "rb") as f:
-    return pickle.load(f)
+    s = zlib.decompress(f.read())
+    return pickle.loads(s)
 
 def save(flist, root):
   with open(r_hash(root), "wb+") as f:
-    pickle.dump(flist, f, pickle.HIGHEST_PROTOCOL)
+    s = pickle.dumps(flist, pickle.HIGHEST_PROTOCOL)
+    f.write(zlib.compress(s))
 
 def skip_scan():
   print("You already searched in this directory")
@@ -46,10 +49,6 @@ def interactive_args():
   root = input("Location to search: ")
   pattern = input("Pattern to search: ")
   return [root, pattern]
-  
-def compress(res):
-  new_r = [res[0]]
-  
   
 def main():
   args = sys.argv[1:]
