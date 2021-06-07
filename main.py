@@ -5,56 +5,13 @@ import hashlib
 import pickle
 import zlib
 
-def get_all_leafs(root):
-  res = []
-  to_visit = [root]
-  while to_visit:
-    now = to_visit.pop()
-    try:
-      with os.scandir(now) as sdn:
-        ls = [(p.path, p.is_dir()) for p in sdn if not p.is_symlink()]
-        to_visit += [p for (p, is_dir) in ls if is_dir]
-        res += [p for (p, is_dir) in ls if not is_dir]
-    except PermissionError:
-      pass
-  return res
+from gui import gui
+from utils import interactive_args, save, load, skip_scan, has_save
+from searcher import get_all_leafs
 
-def r_hash(root):
-  root = os.path.normpath(root)
-  return str(hashlib.md5(root.encode()).hexdigest())[:5]
-
-def has_save(root):
-  return os.path.isfile(r_hash(root))
-  
-def load(root):
-  with open(r_hash(root), "rb") as f:
-    s = zlib.decompress(f.read())
-    return pickle.loads(s)
-
-def save(flist, root):
-  with open(r_hash(root), "wb+") as f:
-    s = pickle.dumps(flist, pickle.HIGHEST_PROTOCOL)
-    f.write(zlib.compress(s))
-
-def skip_scan():
-  print("You already searched in this directory")
-  print("the save file might not contain some results")
-  print()
-  i = input("Do you want to try there first? [Y/n]")
-  if i and i in "nN":
-    return False
-  return True
-
-def interactive_args():
-  root = input("Location to search: ")
-  pattern = input("Pattern to search: ")
-  return [root, pattern]
-  
-def main():
-  args = sys.argv[1:]
+def interactive(): 
   if len(args) != 2:
     args = interactive_args()
-    #print("Usage: name.py root pattern")
   if has_save(args[0]) and skip_scan():
     print("loading...")
     res = load(args[0])
@@ -71,6 +28,34 @@ def main():
     print("No results")
   save(res, args[0])
   input("Press return to close")
+
+def not_interactive(args):
+  root, pattern = args
+  if has_save(root):
+    res = load(root)
+    loaded = True
+  else:
+    res = get_all_leafs(root)
+    loaded = False
+  r = fnmatch.filter(res, pattern)
+  if r:
+    print("\n".join(r))
+  else:
+    print("No result")
+  if not loaded:
+    save(res, root)
+
+def main():
+  args = sys.argv[1:]
+  if len(args) == 0:
+    gui()
+  elif "-int" in args:
+    interactive()
+  elif len(args) == 2:
+    not_interactive(args)
+  else:
+    print("Usage: name.py root pattern")
+
 
 if __name__ == "__main__":
     main()
