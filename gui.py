@@ -2,6 +2,7 @@ import gi
 gi.require_version('Gtk', '3.0')
 
 from gi.repository import Gtk, Gdk
+import os
 
 class Handler:
   def __init__(self, builder):
@@ -26,6 +27,11 @@ class Handler:
     if not r:
       self.res.prepend(Gtk.Label.new_with_mnemonic("No results"))
     self.res.show_all()
+  def startRow(self, lbox, row):
+    if hasattr(os, "startfile"):
+      os.startfile(row.get_child().get_text())
+    else:
+      print(row.get_child().get_text())
 
 def gui():
   b = Gtk.Builder()
